@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, Library, UploadCloud, LogOut, Disc3 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
+import JamControl from "@/components/Jam/JamControl";
 
 const links = [
   { href: "/", label: "Home", icon: Home },
@@ -52,15 +53,18 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <form action={logout}>
-        <button
-          type="submit"
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)]/60 hover:text-[var(--text)]"
-        >
-          <LogOut className="h-[18px] w-[18px]" strokeWidth={2} />
-          Log out
-        </button>
-      </form>
+      <div className="flex flex-col gap-1">
+        <JamControl />
+        <form action={logout}>
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)]/60 hover:text-[var(--text)]"
+          >
+            <LogOut className="h-[18px] w-[18px]" strokeWidth={2} />
+            Log out
+          </button>
+        </form>
+      </div>
     </aside>
   );
 }

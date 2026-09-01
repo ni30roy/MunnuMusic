@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Radio } from "lucide-react";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { useYoutubePlayer } from "@/lib/hooks/useYoutubePlayer";
+import { useJamSync } from "@/lib/hooks/useJamSync";
 import CoverArt from "@/components/CoverArt";
 
 function formatTime(seconds: number) {
@@ -27,6 +28,11 @@ export default function PlayerBar() {
   const [audioProgress, setAudioProgress] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  // Set by jam sync right before a track switch; consumed once the new
+  // track has actually loaded (audio: onLoadedMetadata, youtube: passed
+  // straight into loadVideoById) rather than applied immediately, since the
+  // old element/video is still what's loaded at that instant.
+  const pendingSeekRef = useRef<number | null>(null);
 
   const isYoutube = currentTrack?.source === "youtube";
   const isAudioSource = !!currentTrack && !isYoutube;
@@ -37,6 +43,7 @@ export default function PlayerBar() {
     isPlaying: isPlaying && isYoutube,
     volume,
     onEnded: next,
+    startSecondsRef: pendingSeekRef,
   });
 
   useEffect(() => {
@@ -68,6 +75,19 @@ export default function PlayerBar() {
     }
   }
 
+  const { inJam, pushSeek } = useJamSync({
+    getPosition: () => progress,
+    onRemoteSeek: handleSeek,
+    onTrackChangeSeek: (seconds) => {
+      pendingSeekRef.current = seconds;
+    },
+  });
+
+  function handleUserSeek(t: number) {
+    handleSeek(t);
+    pushSeek(t);
+  }
+
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   return (
@@ -82,7 +102,23 @@ export default function PlayerBar() {
           ref={audioRef}
           src={currentTrack.streamUrl}
           onTimeUpdate={(e) => setAudioProgress(e.currentTarget.currentTime)}
-          onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)}
+          onDurationChange={(e) => {
+            // Cloudinary can briefly report Infinity before settling on the
+            // real duration — keep picking up whatever the latest value is.
+            setAudioDuration(e.currentTarget.duration);
+          }}
+          onLoadedMetadata={(e) => {
+            const target = e.currentTarget;
+            setAudioDuration(target.duration);
+            if (pendingSeekRef.current !== null) {
+              const seekTo = pendingSeekRef.current;
+              pendingSeekRef.current = null;
+              setTimeout(() => {
+                target.currentTime = seekTo;
+                setAudioProgress(seekTo);
+              }, 0);
+            }
+          }}
           onEnded={next}
         />
       )}
@@ -102,8 +138,19 @@ export default function PlayerBar() {
               <CoverArt src={currentTrack.coverArtUrl} size={48} playing={isPlaying} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{currentTrack.title}</p>
-                <p className="truncate text-xs text-[var(--text-muted)]">{currentTrack.artist}</p>
+                <p className="truncate text-xs text-[var(--text-muted)]">
+                  {currentTrack.artist}
+                </p>
               </div>
+              {inJam && (
+                <span
+                  title="Synced with jam"
+                  className="hidden shrink-0 items-center gap-1 rounded-full bg-[var(--accent)]/15 px-2 py-1 text-[10px] font-semibold text-[var(--accent)] md:flex"
+                >
+                  <Radio size={11} />
+                  Jam
+                </span>
+              )}
             </div>
 
             {/* mobile: play/pause + next only */}
@@ -171,7 +218,7 @@ export default function PlayerBar() {
                     min={0}
                     max={duration || 0}
                     value={progress}
-                    onChange={(e) => handleSeek(Number(e.target.value))}
+                    onChange={(e) => handleUserSeek(Number(e.target.value))}
                     aria-label="Seek"
                     className="absolute inset-0 h-4 w-full cursor-pointer opacity-0"
                   />

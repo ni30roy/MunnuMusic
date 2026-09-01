@@ -35,6 +35,9 @@ interface UseYoutubePlayerOptions {
   isPlaying: boolean;
   volume: number;
   onEnded: () => void;
+  // When set, the next video load starts at this position instead of 0 (used
+  // for jam sync) — read and cleared once consumed.
+  startSecondsRef?: React.RefObject<number | null>;
 }
 
 export function useYoutubePlayer({
@@ -43,6 +46,7 @@ export function useYoutubePlayer({
   isPlaying,
   volume,
   onEnded,
+  startSecondsRef,
 }: UseYoutubePlayerOptions) {
   const playerRef = useRef<YT.Player | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -87,8 +91,10 @@ export function useYoutubePlayer({
   // playback state right after (loadVideoById always starts playback).
   useEffect(() => {
     if (!videoId || !isReady || !playerRef.current) return;
-    playerRef.current.loadVideoById(videoId);
-  }, [videoId, isReady]);
+    const startSeconds = startSecondsRef?.current ?? undefined;
+    if (startSecondsRef) startSecondsRef.current = null;
+    playerRef.current.loadVideoById({ videoId, startSeconds });
+  }, [videoId, isReady, startSecondsRef]);
 
   // Play/pause.
   useEffect(() => {

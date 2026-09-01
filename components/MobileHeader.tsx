@@ -1,5 +1,6 @@
 import { LogOut, Disc3 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
+import JamControl from "@/components/Jam/JamControl";
 
 export default function MobileHeader() {
   return (
@@ -11,15 +12,18 @@ export default function MobileHeader() {
         <span className="text-base font-bold tracking-tight">Munnu Music</span>
       </div>
 
-      <form action={logout}>
-        <button
-          type="submit"
-          aria-label="Log out"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
-        >
-          <LogOut size={18} strokeWidth={2} />
-        </button>
-      </form>
+      <div className="flex items-center gap-1">
+        <JamControl iconOnly />
+        <form action={logout}>
+          <button
+            type="submit"
+            aria-label="Log out"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-faint)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+          >
+            <LogOut size={18} strokeWidth={2} />
+          </button>
+        </form>
+      </div>
     </header>
   );
 }

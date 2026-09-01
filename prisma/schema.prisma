@@ -17,47 +17,50 @@ enum SongSource {
 }
 
 model User {
-  id            String      @id @default(cuid())
-  email         String      @unique
-  passwordHash  String
-  name          String
-  createdAt     DateTime    @default(now())
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
 
-  uploadedSongs Song[]      @relation("UploadedSongs")
+  uploadedSongs Song[]           @relation("UploadedSongs")
   playlists     Playlist[]
   likedSongs    LikedSong[]
+  jamsCreated   JamSession[]     @relation("JamSessionsCreated")
+  jamsJoined    JamParticipant[]
 }
 
 model Song {
-  id                String      @id @default(cuid())
-  title             String
-  artist            String?
-  album             String?
-  duration          Int?        // seconds
-  source            SongSource
-  cloudinaryPublicId String?    // for source = library | upload
-  youtubeVideoId    String?     // for source = youtube
-  coverArtUrl       String?
-  createdAt         DateTime    @default(now())
+  id                 String     @id @default(cuid())
+  title              String
+  artist             String?
+  album              String?
+  duration           Int? // seconds
+  source             SongSource
+  cloudinaryPublicId String? // for source = library | upload
+  youtubeVideoId     String? // for source = youtube
+  coverArtUrl        String?
+  createdAt          DateTime   @default(now())
 
-  uploadedById      String?
-  uploadedBy        User?       @relation("UploadedSongs", fields: [uploadedById], references: [id])
+  uploadedById String?
+  uploadedBy   User?   @relation("UploadedSongs", fields: [uploadedById], references: [id])
 
-  playlistEntries   PlaylistSong[]
-  likedBy           LikedSong[]
+  playlistEntries PlaylistSong[]
+  likedBy         LikedSong[]
+  jamSessions     JamSession[]
 
   @@index([uploadedById])
 }
 
 model Playlist {
-  id        String         @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  createdAt DateTime       @default(now())
+  createdAt DateTime @default(now())
 
-  userId    String
-  user      User           @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  songs     PlaylistSong[]
+  songs PlaylistSong[]
 
   @@index([userId])
 }
@@ -67,8 +70,8 @@ model PlaylistSong {
   songId     String
   position   Int
 
-  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-  song       Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song     Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
 
   @@id([playlistId, songId])
   @@index([songId])
@@ -79,9 +82,47 @@ model LikedSong {
   songId    String
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song Song @relation(fields: [songId], references: [id], onDelete: Cascade)
 
   @@id([userId, songId])
   @@index([songId])
+}
+
+// A live listening-together session. Any participant can change what's
+// playing — there's no host/guest distinction for control purposes, just
+// whoever created it (for display / "whose jam is this" purposes only).
+model JamSession {
+  id   String @id @default(cuid())
+  code String @unique
+
+  createdById String
+  createdBy   User   @relation("JamSessionsCreated", fields: [createdById], references: [id])
+
+  // Current track — either a library/upload Song, or a YouTube result (which
+  // has no local row, so its display fields are snapshotted here).
+  songId              String?
+  song                Song?   @relation(fields: [songId], references: [id], onDelete: SetNull)
+  youtubeVideoId      String?
+  youtubeTitle        String?
+  youtubeArtist       String?
+  youtubeThumbnailUrl String?
+
+  isPlaying       Boolean  @default(false)
+  positionSeconds Float    @default(0)
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  participants JamParticipant[]
+}
+
+model JamParticipant {
+  sessionId String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  session JamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, userId])
 }
