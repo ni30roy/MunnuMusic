@@ -4,6 +4,11 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Vercel auto-detects a trusted host; other platforms (Render, etc.) need
+  // this set explicitly or every request 500s with UntrustedHost. Safe here
+  // since the host header comes from our own platform's reverse proxy, not
+  // directly from the client.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [
