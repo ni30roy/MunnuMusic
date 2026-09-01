@@ -5,6 +5,7 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Radio } 
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { useYoutubePlayer } from "@/lib/hooks/useYoutubePlayer";
 import { useJamSync } from "@/lib/hooks/useJamSync";
+import { useMediaSession } from "@/lib/hooks/useMediaSession";
 import CoverArt from "@/components/CoverArt";
 
 function formatTime(seconds: number) {
@@ -87,6 +88,16 @@ export default function PlayerBar() {
     handleSeek(t);
     pushSeek(t);
   }
+
+  useMediaSession({
+    track: currentTrack,
+    isPlaying,
+    onPlay: () => setIsPlaying(true),
+    onPause: () => setIsPlaying(false),
+    onNext: next,
+    onPrevious: previous,
+    onSeek: handleUserSeek,
+  });
 
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
