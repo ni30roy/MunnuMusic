@@ -94,7 +94,7 @@ export default function PlayerBar() {
     <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 md:inset-x-auto md:bottom-0 md:left-64 md:right-0">
       <div
         id="youtube-player-container"
-        className="pointer-events-none fixed -left-[9999px] -top-[9999px] h-px w-px overflow-hidden"
+        className="pointer-events-none fixed -left-[9999px] -top-[9999px] h-[200px] w-[200px] overflow-hidden"
       />
 
       {isAudioSource && currentTrack.streamUrl && (

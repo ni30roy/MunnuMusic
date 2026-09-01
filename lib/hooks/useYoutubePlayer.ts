@@ -64,10 +64,15 @@ export function useYoutubePlayer({
     loadYoutubeIframeApi().then(() => {
       if (cancelled || playerRef.current) return;
       playerRef.current = new window.YT.Player(containerId, {
-        height: "0",
-        width: "0",
+        height: "200",
+        width: "200",
         events: {
-          onReady: () => {
+          onReady: (event: YT.PlayerEvent) => {
+            // Browsers require a genuine click before allowing sound; a jam
+            // sync switching tracks later is a programmatic call, not a
+            // click, and YouTube's embed silently falls back to muted
+            // playback unless it's explicitly told otherwise up front.
+            event.target.unMute();
             setIsReady(true);
           },
           onStateChange: (event: YT.OnStateChangeEvent) => {
@@ -106,10 +111,27 @@ export function useYoutubePlayer({
     }
   }, [isPlaying, isReady, videoId]);
 
-  // Volume.
+  // Volume — also explicitly (un)mute, since a video that fell back to
+  // muted autoplay stays muted until something calls unMute() regardless of
+  // what setVolume() reports.
   useEffect(() => {
-    playerRef.current?.setVolume(Math.round(volume * 100));
-  }, [volume]);
+    const player = playerRef.current;
+    if (!player) return;
+    player.setVolume(Math.round(volume * 100));
+    if (volume > 0) {
+      player.unMute();
+    } else {
+      player.mute();
+    }
+  }, [volume, isReady]);
+
+  // Belt-and-suspenders: re-assert unmuted right when (re)play is requested,
+  // since this is exactly the moment autoplay-policy muting kicks in for a
+  // programmatic (non-click) play call.
+  useEffect(() => {
+    if (!isReady || !playerRef.current || !isPlaying) return;
+    if (volume > 0) playerRef.current.unMute();
+  }, [isPlaying, isReady, volume]);
 
   // Poll progress while playing.
   useEffect(() => {
