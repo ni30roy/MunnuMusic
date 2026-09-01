@@ -84,7 +84,6 @@ export default function PlayerBar() {
           onTimeUpdate={(e) => setAudioProgress(e.currentTarget.currentTime)}
           onLoadedMetadata={(e) => setAudioDuration(e.currentTarget.duration)}
           onEnded={next}
-          autoPlay
         />
       )}
 
