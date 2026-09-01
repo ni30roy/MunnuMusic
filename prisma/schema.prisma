@@ -1,0 +1,87 @@
+// Prisma schema for the personal music app
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SongSource {
+  library
+  upload
+  youtube
+}
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  passwordHash  String
+  name          String
+  createdAt     DateTime    @default(now())
+
+  uploadedSongs Song[]      @relation("UploadedSongs")
+  playlists     Playlist[]
+  likedSongs    LikedSong[]
+}
+
+model Song {
+  id                String      @id @default(cuid())
+  title             String
+  artist            String?
+  album             String?
+  duration          Int?        // seconds
+  source            SongSource
+  cloudinaryPublicId String?    // for source = library | upload
+  youtubeVideoId    String?     // for source = youtube
+  coverArtUrl       String?
+  createdAt         DateTime    @default(now())
+
+  uploadedById      String?
+  uploadedBy        User?       @relation("UploadedSongs", fields: [uploadedById], references: [id])
+
+  playlistEntries   PlaylistSong[]
+  likedBy           LikedSong[]
+
+  @@index([uploadedById])
+}
+
+model Playlist {
+  id        String         @id @default(cuid())
+  name      String
+  createdAt DateTime       @default(now())
+
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+
+  songs     PlaylistSong[]
+
+  @@index([userId])
+}
+
+model PlaylistSong {
+  playlistId String
+  songId     String
+  position   Int
+
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song       Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@id([playlistId, songId])
+  @@index([songId])
+}
+
+model LikedSong {
+  userId    String
+  songId    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@id([userId, songId])
+  @@index([songId])
+}

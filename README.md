@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Munnu Music
 
-## Getting Started
+A personal Spotify-style music app — web + installable PWA — built entirely on
+free-tier services. Play your own preloaded library, upload songs, or search
+and play from YouTube.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router, Turbopack) + Tailwind CSS
+- Neon (serverless Postgres) + Prisma 7
+- Auth.js (email/password, JWT sessions)
+- Cloudinary (audio + cover art storage)
+- YouTube Data API v3 + IFrame Player API
+
+## Setup
+
+1. `npm install`
+2. Copy `.env.example` to `.env` and fill in:
+   - `DATABASE_URL` — Neon connection string (console.neon.tech)
+   - `AUTH_SECRET` — random string, e.g. `openssl rand -base64 32`
+   - `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` — cloudinary.com dashboard
+   - `YOUTUBE_API_KEY` — Google Cloud Console, YouTube Data API v3 key
+   - `SIGNUP_INVITE_CODE` — any string; people need it to create an account on `/signup`
+3. `npx prisma migrate dev` — creates the database schema
+4. `npm run dev` — starts the app at http://localhost:3000
+
+## Preloading your own song library
+
+Drop your MP3/M4A/WAV/FLAC files in a folder, then run:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run import-songs -- "C:\path\to\your\songs"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Reads ID3 tags (title/artist/album/cover art), uploads to Cloudinary, and adds
+each song to the library. Safe to re-run — already-imported songs are skipped.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Push to GitHub and import the repo on [vercel.com](https://vercel.com/new).
+Set the same environment variables from `.env` in the Vercel project settings.
