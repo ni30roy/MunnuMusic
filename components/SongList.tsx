@@ -1,8 +1,10 @@
 "use client";
 
 import { useTransition } from "react";
+import { Heart, X } from "lucide-react";
 import { usePlayerStore, type Track } from "@/lib/store/playerStore";
 import { toggleLike } from "@/app/actions/songs";
+import CoverArt from "@/components/CoverArt";
 
 export default function SongList({
   songs,
@@ -19,38 +21,41 @@ export default function SongList({
   const [, startTransition] = useTransition();
 
   if (songs.length === 0) {
-    return <p className="px-6 text-sm text-neutral-500">No songs yet.</p>;
+    return (
+      <p className="px-4 py-6 text-sm text-[var(--text-faint)] md:px-6">
+        Nothing here yet.
+      </p>
+    );
   }
 
   return (
-    <ul className="divide-y divide-neutral-900">
+    <ul className="flex flex-col gap-0.5 px-2 md:px-4">
       {songs.map((song, index) => {
         const isActive = currentTrack?.id === song.id;
         const isLiked = likedSongIds?.has(song.id) ?? false;
         return (
-          <li key={song.id} className="flex items-center">
+          <li
+            key={song.id}
+            className={`group flex items-center rounded-xl transition-colors ${
+              isActive ? "bg-[var(--surface)]" : "hover:bg-[var(--surface)]/60"
+            }`}
+          >
             <button
               onClick={() => playQueue(songs, index)}
-              className={`flex min-w-0 flex-1 items-center gap-3 px-6 py-2 text-left hover:bg-neutral-900 ${
-                isActive ? "text-green-500" : "text-white"
-              }`}
+              className="flex min-w-0 flex-1 items-center gap-3 px-2 py-2 text-left"
             >
-              {song.coverArtUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={song.coverArtUrl}
-                  alt=""
-                  className="h-10 w-10 rounded object-cover"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded bg-neutral-800" />
-              )}
+              <CoverArt src={song.coverArtUrl} size={46} playing={isActive && isPlaying} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
-                  {isActive && isPlaying ? "▶ " : ""}
+                <p
+                  className={`truncate text-sm font-medium ${
+                    isActive ? "text-[var(--accent)]" : "text-[var(--text)]"
+                  }`}
+                >
                   {song.title}
                 </p>
-                <p className="truncate text-xs text-neutral-400">{song.artist}</p>
+                <p className="truncate text-xs text-[var(--text-muted)]">
+                  {song.artist || " "}
+                </p>
               </div>
             </button>
 
@@ -58,9 +63,13 @@ export default function SongList({
               <button
                 aria-label={isLiked ? "Unlike" : "Like"}
                 onClick={() => startTransition(() => toggleLike(song.id))}
-                className={`px-4 text-lg ${isLiked ? "text-green-500" : "text-neutral-500 hover:text-white"}`}
+                className="px-3 py-2 text-[var(--text-faint)] transition-colors hover:text-[var(--accent)]"
               >
-                {isLiked ? "♥" : "♡"}
+                <Heart
+                  size={18}
+                  fill={isLiked ? "var(--accent)" : "none"}
+                  className={isLiked ? "text-[var(--accent)]" : ""}
+                />
               </button>
             )}
 
@@ -68,9 +77,9 @@ export default function SongList({
               <button
                 aria-label="Remove from playlist"
                 onClick={() => onRemove(song.id)}
-                className="px-4 text-sm text-neutral-500 hover:text-red-500"
+                className="px-3 py-2 text-[var(--text-faint)] transition-colors hover:text-red-400"
               >
-                ✕
+                <X size={17} />
               </button>
             )}
           </li>

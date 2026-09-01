@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX } from "lucide-react";
 import { usePlayerStore } from "@/lib/store/playerStore";
 import { useYoutubePlayer } from "@/lib/hooks/useYoutubePlayer";
+import CoverArt from "@/components/CoverArt";
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds)) return "0:00";
@@ -55,6 +57,7 @@ export default function PlayerBar() {
 
   const progress = isYoutube ? youtube.currentTime : audioProgress;
   const duration = isYoutube ? youtube.duration : audioDuration;
+  const progressPct = duration > 0 ? Math.min(100, (progress / duration) * 100) : 0;
 
   function handleSeek(t: number) {
     if (isYoutube) {
@@ -65,8 +68,10 @@ export default function PlayerBar() {
     }
   }
 
+  const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
+
   return (
-    <div className="fixed bottom-0 left-0 right-0">
+    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 md:inset-x-auto md:bottom-0 md:left-64 md:right-0">
       <div
         id="youtube-player-container"
         className="pointer-events-none fixed -left-[9999px] -top-[9999px] h-px w-px overflow-hidden"
@@ -84,64 +89,111 @@ export default function PlayerBar() {
       )}
 
       {currentTrack && (
-        <div className="flex items-center gap-4 border-t border-neutral-800 bg-neutral-950 px-4 py-3 text-white">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            {currentTrack.coverArtUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={currentTrack.coverArtUrl}
-                alt=""
-                className="h-12 w-12 shrink-0 rounded object-cover"
-              />
-            ) : (
-              <div className="h-12 w-12 shrink-0 rounded bg-neutral-800" />
-            )}
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{currentTrack.title}</p>
-              <p className="truncate text-xs text-neutral-400">{currentTrack.artist}</p>
-            </div>
+        <div className="glass border-t border-[var(--border)] px-3 py-2.5 text-[var(--text)] md:px-5 md:py-3">
+          {/* mobile progress hairline */}
+          <div className="mb-2 h-[3px] w-full overflow-hidden rounded-full bg-[var(--surface)] md:hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)]"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
 
-          <div className="flex flex-1 flex-col items-center gap-1">
-            <div className="flex items-center gap-4">
-              <button onClick={previous} aria-label="Previous" className="text-neutral-300 hover:text-white">
-                ⏮
-              </button>
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <CoverArt src={currentTrack.coverArtUrl} size={48} playing={isPlaying} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{currentTrack.title}</p>
+                <p className="truncate text-xs text-[var(--text-muted)]">{currentTrack.artist}</p>
+              </div>
+            </div>
+
+            {/* mobile: play/pause + next only */}
+            <div className="flex items-center gap-1 md:hidden">
               <button
                 onClick={togglePlay}
                 aria-label={isPlaying ? "Pause" : "Play"}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--text)] text-[var(--bg)] active:scale-95"
               >
-                {isPlaying ? "⏸" : "▶"}
+                {isPlaying ? (
+                  <Pause size={18} fill="currentColor" />
+                ) : (
+                  <Play size={18} fill="currentColor" className="ml-0.5" />
+                )}
               </button>
-              <button onClick={next} aria-label="Next" className="text-neutral-300 hover:text-white">
-                ⏭
+              <button
+                onClick={next}
+                aria-label="Next"
+                className="flex h-10 w-10 items-center justify-center text-[var(--text-muted)]"
+              >
+                <SkipForward size={20} fill="currentColor" />
               </button>
             </div>
-            <div className="flex w-full max-w-md items-center gap-2 text-xs text-neutral-400">
-              <span>{formatTime(progress)}</span>
+
+            {/* desktop: full transport + seek */}
+            <div className="hidden flex-1 flex-col items-center gap-1.5 md:flex">
+              <div className="flex items-center gap-5">
+                <button
+                  onClick={previous}
+                  aria-label="Previous"
+                  className="text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+                >
+                  <SkipBack size={18} fill="currentColor" />
+                </button>
+                <button
+                  onClick={togglePlay}
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--text)] text-[var(--bg)] shadow-lg transition-transform hover:scale-105 active:scale-95"
+                >
+                  {isPlaying ? (
+                    <Pause size={16} fill="currentColor" />
+                  ) : (
+                    <Play size={16} fill="currentColor" className="ml-0.5" />
+                  )}
+                </button>
+                <button
+                  onClick={next}
+                  aria-label="Next"
+                  className="text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+                >
+                  <SkipForward size={18} fill="currentColor" />
+                </button>
+              </div>
+              <div className="flex w-full max-w-md items-center gap-2 text-[11px] tabular-nums text-[var(--text-faint)]">
+                <span>{formatTime(progress)}</span>
+                <div className="group relative flex h-4 w-full items-center">
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--surface)]">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)]"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 0}
+                    value={progress}
+                    onChange={(e) => handleSeek(Number(e.target.value))}
+                    aria-label="Seek"
+                    className="absolute inset-0 h-4 w-full cursor-pointer opacity-0"
+                  />
+                </div>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            <div className="hidden flex-1 items-center justify-end gap-2 md:flex">
+              <VolumeIcon size={18} className="text-[var(--text-faint)]" />
               <input
                 type="range"
                 min={0}
-                max={duration || 0}
-                value={progress}
-                onChange={(e) => handleSeek(Number(e.target.value))}
-                className="w-full accent-green-500"
+                max={1}
+                step={0.01}
+                value={volume}
+                onChange={(e) => setVolume(Number(e.target.value))}
+                aria-label="Volume"
+                className="w-24 accent-[var(--accent)]"
               />
-              <span>{formatTime(duration)}</span>
             </div>
-          </div>
-
-          <div className="flex flex-1 items-center justify-end gap-2">
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={volume}
-              onChange={(e) => setVolume(Number(e.target.value))}
-              className="w-24 accent-green-500"
-            />
           </div>
         </div>
       )}

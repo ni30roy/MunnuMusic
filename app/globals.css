@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b0710;
+  --bg-elevated: #150f1e;
+  --surface: #1a1324;
+  --surface-hover: #241a30;
+  --border: #2c2138;
+  --text: #f5f2fa;
+  --text-muted: #a89bbd;
+  --text-faint: #6f6484;
+  --accent: #34e08a;
+  --accent-2: #22c1dc;
+  --accent-contrast: #05130c;
+  --accent-glow: rgba(52, 224, 138, 0.35);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --font-sans: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-outfit), system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Ambient backdrop: a soft glow anchored top-left, present on every screen
+   so flat panels don't read as empty. */
+.app-backdrop {
+  background:
+    radial-gradient(circle at 15% -10%, rgba(52, 224, 138, 0.16), transparent 45%),
+    radial-gradient(circle at 100% 0%, rgba(34, 193, 220, 0.12), transparent 40%),
+    var(--bg);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.glass {
+  background: rgba(21, 15, 30, 0.72);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-hover);
+  border-radius: 999px;
+}
+
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+.eq-bar {
+  animation: eq-bounce 0.9s ease-in-out infinite;
 }

@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { songToTrack } from "@/lib/song";
 import { searchYoutube } from "@/lib/youtube";
@@ -34,27 +35,37 @@ export default async function SearchPage(props: PageProps<"/search">) {
   }));
 
   return (
-    <div className="py-6">
-      <form action="/search" className="px-6">
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="What do you want to listen to?"
-          className="w-full max-w-md rounded-full bg-neutral-800 px-4 py-2 outline-none focus:ring-2 focus:ring-green-500"
-        />
+    <div className="pt-6 md:pt-10">
+      <form action="/search" className="px-4 md:px-6">
+        <div className="relative max-w-md">
+          <Search
+            size={17}
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-faint)]"
+          />
+          <input
+            type="text"
+            name="q"
+            defaultValue={q}
+            placeholder="What do you want to listen to?"
+            className="w-full rounded-full border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-10 pr-4 text-sm outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--accent)]/60"
+          />
+        </div>
       </form>
 
-      {!q && <p className="mt-6 px-6 text-sm text-neutral-500">Search your library or YouTube.</p>}
+      {!q && (
+        <p className="mt-6 px-4 text-sm text-[var(--text-faint)] md:px-6">
+          Search your library or YouTube.
+        </p>
+      )}
 
       {q && (
         <div className="mt-6 space-y-8">
           <div>
-            <h2 className="mb-3 px-6 text-lg font-semibold">Your Library</h2>
+            <h2 className="mb-3 px-4 text-lg font-bold tracking-tight md:px-6">Your Library</h2>
             <SongList songs={librarySongs.map(songToTrack)} />
           </div>
           <div>
-            <h2 className="mb-3 px-6 text-lg font-semibold">From YouTube</h2>
+            <h2 className="mb-3 px-4 text-lg font-bold tracking-tight md:px-6">From YouTube</h2>
             <SongList songs={youtubeTracks} />
           </div>
         </div>

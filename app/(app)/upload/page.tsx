@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { UploadCloud, Music2 } from "lucide-react";
 
 type Status = "idle" | "uploading" | "saving" | "done" | "error";
 
@@ -70,23 +71,36 @@ export default function UploadPage() {
   const busy = status === "uploading" || status === "saving";
 
   return (
-    <div className="mx-auto max-w-md px-6 py-10">
-      <h1 className="mb-6 text-2xl font-bold">Upload a song</h1>
+    <div className="mx-auto max-w-md px-4 pt-6 md:px-6 md:pt-10">
+      <h1 className="mb-1 text-2xl font-bold tracking-tight">Upload a song</h1>
+      <p className="mb-6 text-sm text-[var(--text-muted)]">
+        Goes straight into your library, from your own device.
+      </p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1">
-          <label className="text-sm text-neutral-400">Audio file</label>
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/60 p-5"
+      >
+        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-[var(--border)] px-4 py-8 text-center transition-colors hover:border-[var(--accent)]/50">
+          {file ? (
+            <Music2 size={26} className="text-[var(--accent)]" />
+          ) : (
+            <UploadCloud size={26} className="text-[var(--text-faint)]" />
+          )}
+          <span className="text-sm font-medium">
+            {file ? file.name : "Tap to choose an audio file"}
+          </span>
           <input
             type="file"
             accept="audio/*"
             required
             onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
-            className="w-full rounded-md bg-neutral-900 px-3 py-2 text-sm"
+            className="hidden"
           />
-        </div>
+        </label>
 
         <div className="space-y-1">
-          <label htmlFor="title" className="text-sm text-neutral-400">
+          <label htmlFor="title" className="text-xs font-medium text-[var(--text-muted)]">
             Title
           </label>
           <input
@@ -94,28 +108,28 @@ export default function UploadPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full rounded-md bg-neutral-900 px-3 py-2 outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/60"
           />
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="artist" className="text-sm text-neutral-400">
+          <label htmlFor="artist" className="text-xs font-medium text-[var(--text-muted)]">
             Artist (optional)
           </label>
           <input
             id="artist"
             value={artist}
             onChange={(e) => setArtist(e.target.value)}
-            className="w-full rounded-md bg-neutral-900 px-3 py-2 outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-sm outline-none focus:border-[var(--accent)]/60"
           />
         </div>
 
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
         <button
           type="submit"
           disabled={busy || !file}
-          className="w-full rounded-full bg-green-500 py-2 font-semibold text-black disabled:opacity-60"
+          className="w-full rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-2)] py-2.5 font-semibold text-[var(--accent-contrast)] transition-transform active:scale-[0.98] disabled:opacity-50"
         >
           {status === "uploading"
             ? "Uploading..."
