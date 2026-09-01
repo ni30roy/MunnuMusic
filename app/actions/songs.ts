@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { cloudinary } from "@/lib/cloudinary";
 
 async function requireUserId() {
   const session = await auth();
@@ -66,4 +67,28 @@ export async function removeSongFromPlaylist(playlistId: string, songId: string)
   });
 
   revalidatePath(`/playlist/${playlistId}`);
+}
+
+// Permanently removes a song from the shared library (not just "unlike" or
+// "remove from this playlist"). Any signed-in user can delete any song —
+// this is a small trusted/invite-only group sharing one library, the same
+// trust boundary that already lets everyone see and play each other's
+// uploads.
+export async function deleteSong(songId: string) {
+  await requireUserId();
+
+  const song = await prisma.song.findUnique({ where: { id: songId } });
+  if (!song) return;
+
+  if (song.cloudinaryPublicId) {
+    await cloudinary.uploader
+      .destroy(song.cloudinaryPublicId, { resource_type: "video" })
+      .catch((err) => console.error("Cloudinary delete failed:", err));
+  }
+
+  await prisma.song.delete({ where: { id: songId } });
+
+  revalidatePath("/");
+  revalidatePath("/library");
+  revalidatePath("/search");
 }

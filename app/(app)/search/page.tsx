@@ -62,7 +62,7 @@ export default async function SearchPage(props: PageProps<"/search">) {
         <div className="mt-6 space-y-8">
           <div>
             <h2 className="mb-3 px-4 text-lg font-bold tracking-tight md:px-6">Your Library</h2>
-            <SongList songs={librarySongs.map(songToTrack)} />
+            <SongList songs={librarySongs.map(songToTrack)} deletable />
           </div>
           <div>
             <h2 className="mb-3 px-4 text-lg font-bold tracking-tight md:px-6">From YouTube</h2>

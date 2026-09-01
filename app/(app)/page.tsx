@@ -36,7 +36,7 @@ export default async function HomePage() {
           </p>
         )}
       </div>
-      <SongList songs={songs.map(songToTrack)} likedSongIds={likedSongIds} />
+      <SongList songs={songs.map(songToTrack)} likedSongIds={likedSongIds} deletable />
     </div>
   );
 }

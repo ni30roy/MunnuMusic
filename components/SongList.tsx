@@ -1,19 +1,21 @@
 "use client";
 
 import { useTransition } from "react";
-import { Heart, X } from "lucide-react";
+import { Heart, X, Trash2 } from "lucide-react";
 import { usePlayerStore, type Track } from "@/lib/store/playerStore";
-import { toggleLike } from "@/app/actions/songs";
+import { toggleLike, deleteSong } from "@/app/actions/songs";
 import CoverArt from "@/components/CoverArt";
 
 export default function SongList({
   songs,
   likedSongIds,
   onRemove,
+  deletable,
 }: {
   songs: Track[];
   likedSongIds?: Set<string>;
   onRemove?: (songId: string) => void;
+  deletable?: boolean;
 }) {
   const playQueue = usePlayerStore((s) => s.playQueue);
   const currentTrack = usePlayerStore((s) => s.currentTrack);
@@ -26,6 +28,11 @@ export default function SongList({
         Nothing here yet.
       </p>
     );
+  }
+
+  function handleDelete(title: string, songId: string) {
+    if (!confirm(`Delete "${title}" from the library? This can't be undone.`)) return;
+    startTransition(() => deleteSong(songId));
   }
 
   return (
@@ -54,7 +61,7 @@ export default function SongList({
                   {song.title}
                 </p>
                 <p className="truncate text-xs text-[var(--text-muted)]">
-                  {song.artist || " "}
+                  {song.artist || " "}
                 </p>
               </div>
             </button>
@@ -80,6 +87,16 @@ export default function SongList({
                 className="px-3 py-2 text-[var(--text-faint)] transition-colors hover:text-red-400"
               >
                 <X size={17} />
+              </button>
+            )}
+
+            {deletable && (
+              <button
+                aria-label={`Delete ${song.title}`}
+                onClick={() => handleDelete(song.title, song.id)}
+                className="px-3 py-2 text-[var(--text-faint)] transition-colors hover:text-red-400"
+              >
+                <Trash2 size={16} />
               </button>
             )}
           </li>

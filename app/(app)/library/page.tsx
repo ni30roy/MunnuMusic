@@ -68,12 +68,12 @@ export default async function LibraryPage() {
 
       <div>
         <h2 className="mb-3 px-4 text-lg font-bold tracking-tight md:px-6">Liked Songs</h2>
-        <SongList songs={likedSongs.map(songToTrack)} likedSongIds={likedSongIds} />
+        <SongList songs={likedSongs.map(songToTrack)} likedSongIds={likedSongIds} deletable />
       </div>
 
       <div>
         <h2 className="mb-3 px-4 text-lg font-bold tracking-tight md:px-6">Your Uploads</h2>
-        <SongList songs={uploadedSongs.map(songToTrack)} likedSongIds={likedSongIds} />
+        <SongList songs={uploadedSongs.map(songToTrack)} likedSongIds={likedSongIds} deletable />
       </div>
     </div>
   );
